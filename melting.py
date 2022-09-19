@@ -15,12 +15,11 @@ step_size = 8
 column_offsets = [None] * ceil(background.size[0] / column_size)
 column_offsets[0] = randint(0, max_offset)
 for i in range(1, len(column_offsets)):
-    if column_offsets[i] == None:
-        column_offsets[i] = column_offsets[i - 1] + randint(-1, 1)
-        if column_offsets[i] < 0:
-            column_offsets[i] = 0
-        elif column_offsets[i] > max_offset:
-            column_offsets[i] = max_offset
+    column_offsets[i] = column_offsets[i - 1] + randint(-1, 1)
+    if column_offsets[i] < 0:
+        column_offsets[i] = 0
+    elif column_offsets[i] > max_offset:
+        column_offsets[i] = max_offset
 
 columns = [None] * ceil(background.size[0] / column_size)
 for i in range(len(columns)):
