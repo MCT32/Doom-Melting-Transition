@@ -4,6 +4,7 @@ from pathlib import Path
 from math import ceil
 from random import randint
 
+# Random number array used in the original Doom
 rndtable = [
     0,   8, 109, 220, 222, 241, 149, 107,  75, 248, 254, 140,  16,  66 ,
     74,  21, 211,  47,  80, 242, 154,  27, 205, 128, 161,  89,  77,  36 ,
@@ -26,61 +27,77 @@ rndtable = [
     120, 163, 236, 249
 ]
 
+# Current index in the rndtable
 rndindex = 0x0
 
+# Original Doom random number function
 def M_Random():
-    global rndindex
-    rndindex = (rndindex + 1) & 0xff
-    return rndtable[rndindex]
+    global rndindex                     # Allow function to write to global variable
+    rndindex = (rndindex + 1) & 0xff    # Assign a new rnd index
+    return rndtable[rndindex]           # Get number from rnd table
 
+# Wrapper function for using the original Doom random number function
 def doom_randint(min, max):
-    return min + M_Random() % (max - min + 1)
+    return min + M_Random() % (max - min + 1)   # Conform random number between min and max
 
-parser = ArgumentParser()
+parser = ArgumentParser()   # Initialize argument parser
 
-parser.add_argument('background', type=Path, help="Image that should be used as the background")
-parser.add_argument('foreground', type=Path, help="Image that should be used as the foreground")
+parser.add_argument('background', type=Path, help="Image that should be used as the background")    # Add background image file as argument
+parser.add_argument('foreground', type=Path, help="Image that should be used as the foreground")    # Add foreground image file as argument
 
+# Add transition parameters as arguments
 parser.add_argument('--column-size', type=int, default=2)
 parser.add_argument('--max-offset', type=int, default=15)
 parser.add_argument('--step-size', type=int, default=8)
 
-parser.add_argument('--doom-rnd', dest="random", action="store_const", const=doom_randint, default=randint, help="Use original Doom random numbere generation")
+parser.add_argument('--doom-rnd', dest="random", action="store_const", const=doom_randint, default=randint, help="Use original Doom random numbere generation") # Option for using original Doom random number generation
 
-args = parser.parse_args()
+args = parser.parse_args()  # Parse the arguments
 
+# Load images
 background = Image.open(args.background)
 foreground = Image.open(args.foreground)
 
+# Assertions for image mismatches
 assert background.size == foreground.size, "Images are different sizes"
 assert background.mode == foreground.mode, "Images are different modes"
 
-column_offsets = [None] * ceil(background.size[0] / args.column_size)
-column_offsets[0] = args.random(0, args.max_offset)
+# Generate offsets
+column_offsets = [None] * ceil(background.size[0] / args.column_size)   # Initialise empty array
+column_offsets[0] = args.random(0, args.max_offset)                     # Fill first offset
+# Loop through remaining offsets
 for i in range(1, len(column_offsets)):
-    column_offsets[i] = column_offsets[i - 1] + -args.random(-1, 1)
+    column_offsets[i] = column_offsets[i - 1] + -args.random(-1, 1)     # Set offset to previous offset with increment, decrement or just the same
+    # Clamp offset between 0 and max offset
     if column_offsets[i] < 0:
         column_offsets[i] = 0
     elif column_offsets[i] > args.max_offset:
         column_offsets[i] = args.max_offset
 
-columns = [None] * ceil(background.size[0] / args.column_size)
+# Cut out columns from foreground image
+columns = [None] * ceil(background.size[0] / args.column_size)  # Initialise empty array
+# Loop through columns
 for i in range(len(columns)):
-    copy = foreground.copy()
-    columns[i] = copy.crop((i * args.column_size, 0, (i + 1) * args.column_size, background.size[1]))
+    copy = foreground.copy()    # Copy foreground image for croping
+    columns[i] = copy.crop((i * args.column_size, 0, (i + 1) * args.column_size, background.size[1]))   # Crop the image
 
-frames = []
-
+# Generate frames
+frames = [] # Initialise empty array
+# Loop through frames
 for i in range(ceil(background.size[1] / args.step_size) + args.max_offset + 1):
-    buffer = background.copy()
+    buffer = background.copy()  # Copy background image
+    # Loop through columns
     for j in range(len(column_offsets)):
+        # If offset it not yet reached, paste at top of image
         if column_offsets[j] >= 0:
             buffer.paste(columns[j], (j * args.column_size, 0))
+        # Otherwise paste at offset
         else:
             buffer.paste(columns[j], (j * args.column_size, -column_offsets[j] * args.step_size))
-        column_offsets[j] -= 1
+        column_offsets[j] -= 1  # Decrement offset
     
-    frames.append(buffer)
+    frames.append(buffer)   # Add frame to array
 
+# Save output as gif
 gif = frames[0].copy()
 gif.save("out.gif", save_all=True, append_images=frames[1:])
