@@ -42,8 +42,10 @@ def doom_randint(min, max):
 
 parser = ArgumentParser()   # Initialize argument parser
 
-parser.add_argument('background', type=Path, help="Image that should be used as the background")    # Add background image file as argument
-parser.add_argument('foreground', type=Path, help="Image that should be used as the foreground")    # Add foreground image file as argument
+parser.add_argument('background', type=Path, help="Image that should be used as the background")        # Add background image file as argument
+parser.add_argument('foreground', type=Path, help="Image that should be used as the foreground")        # Add foreground image file as argument
+
+parser.add_argument('-o', type=Path, default=Path("./out.gif"), help="File for output to be saved to")  # Optionally specify output file
 
 # Add transition parameters as arguments
 parser.add_argument('--column-size', type=int, default=2)
@@ -100,4 +102,4 @@ for i in range(ceil(background.size[1] / args.step_size) + args.max_offset + 1):
 
 # Save output as gif
 gif = frames[0].copy()
-gif.save("out.gif", save_all=True, append_images=frames[1:])
+gif.save(args.o, save_all=True, append_images=frames[1:])
