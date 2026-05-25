@@ -8,8 +8,8 @@ For best results, use original Doom resolution (320 x 200), otherwise change par
 
 ## Example
 ### Background
-![Background](https://user-images.githubusercontent.com/32090502/191040498-8e878cae-03bc-407d-a348-100fd445f03a.png)
+![Background](res/background.png)
 ### Foreground
-![Foreground](https://user-images.githubusercontent.com/32090502/191040577-be6aa5f8-d853-4304-a40d-227d4e0998a6.png)
+![Foreground](res/foreground.png)
 ### Output
-![Output](https://user-images.githubusercontent.com/32090502/191040108-ae7b4998-c456-467a-8bb3-125cf8add140.gif)
+![Output](res/out.gif)
